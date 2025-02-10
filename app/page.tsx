@@ -1,101 +1,104 @@
-import Image from "next/image";
+"use client";
+
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Download, Heart, Github } from "lucide-react";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
+
+const HF_API_URL = "https://huggingface.co/api/models";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [models, setModels] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+  useEffect(() => {
+    fetch(HF_API_URL)
+      .then((res) => res.json())
+      .then((data) => setModels(data.slice(0, 10))) // Fetch only a few for now
+      .catch((err) => console.error(err));
+  }, []);
+
+  const handleScroll = (event: React.WheelEvent) => {
+    if (Math.abs(event.deltaY) < 50) return; // Further reduce sensitivity
+    setCurrentIndex((prev) =>
+      event.deltaY > 0 ? (prev + 1) % models.length : (prev - 1 + models.length) % models.length
+    );
+  };
+
+  return (
+    <div
+      className={`flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4 overflow-hidden ${inter.className} relative`}
+      onWheel={handleScroll}
+    >
+      <div className="absolute inset-0 bg-grid-dark opacity-20"></div>
+      <nav className="fixed top-0 w-full p-4 flex justify-between items-center bg-gray-800/80 backdrop-blur-md shadow-lg z-10 border-b border-blue-500/20">
+        <h1 className="text-2xl font-bold text-blue-400 pl-4">
+          <strong>HF-TOK</strong>
+        </h1>
         <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          href="https://github.com/Dhanush-K-Gowda/hf-tok"
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
+          <button className="px-8 py-2 flex items-center space-x-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-600 text-white focus:ring-2 focus:ring-blue-400 hover:shadow-xl transition duration-200">
+            <Github className="h-5 w-5" />
+            <span>Star on GitHub</span>
+          </button>
         </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </nav>
+      {models.length > 0 && (
+        <motion.div
+          key={models[currentIndex].id}
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
+          className="w-full max-w-md transition-transform duration-500 mt-20"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <Card className="rounded-3xl shadow-2xl bg-gray-800/50 backdrop-blur-md border border-blue-500/20">
+            <CardContent className="p-8 flex flex-col items-center text-center">
+              <h2 className="text-3xl font-extrabold tracking-wide text-blue-400">{models[currentIndex].id}</h2>
+              <p className="text-sm text-blue-300 mt-2 italic">{models[currentIndex].pipeline_tag}</p>
+              <p className="text-sm text-gray-300 mt-4">
+                {models[currentIndex].cardData?.description || "No description available."}
+              </p>
+              <div className="flex items-center justify-center space-x-4 mt-4">
+                <p className="text-xs text-gray-400 flex items-center">
+                  <Heart className="text-red-400 mr-1 h-4 w-4" /> {models[currentIndex].likes}
+                </p>
+                <p className="text-xs text-gray-400 flex items-center">
+                  <Download className="text-blue-400 mr-1 h-4 w-4" /> {models[currentIndex].downloads}
+                </p>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Author: {models[currentIndex].author || "Unknown"}</p>
+              <a
+                href={`https://huggingface.co/${models[currentIndex].id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <button className="shadow-[0_4px_14px_0_rgb(0,118,255,39%)] hover:shadow-[0_6px_20px_rgba(0,118,255,23%)] hover:bg-[rgba(0,118,255,0.9)] px-8 py-2 bg-[#0070f3] rounded-md text-white font-light transition duration-200 ease-linear mt-4">
+                  View on Hugging Face
+                </button>
+              </a>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+      <footer className="fixed bottom-4 text-sm text-blue-400">
+  Made with ❤️ by
+  <a
+    href="https://x.com/gowda_dhanush03"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="underline ml-1 hover:text-blue-500"
+  >
+    Dhanush
+  </a>
+</footer>
+
     </div>
   );
 }
