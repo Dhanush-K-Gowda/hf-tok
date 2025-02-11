@@ -14,6 +14,7 @@ const HF_API_URL = "https://huggingface.co/api/models";
 export default function Home() {
   const [models, setModels] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(HF_API_URL)
@@ -22,19 +23,41 @@ export default function Home() {
       .catch((err) => console.error(err));
   }, []);
 
+  // Handle Scroll Event (Desktop)
   const handleScroll = (event: React.WheelEvent) => {
-    if (Math.abs(event.deltaY) < 50) return; // Further reduce sensitivity
+    if (Math.abs(event.deltaY) < 50) return;
     setCurrentIndex((prev) =>
       event.deltaY > 0 ? (prev + 1) % models.length : (prev - 1 + models.length) % models.length
     );
   };
 
+  // Handle Touch Events (Mobile)
+  const handleTouchStart = (event: React.TouchEvent) => {
+    setTouchStart(event.touches[0].clientY);
+  };
+
+  const handleTouchMove = (event: React.TouchEvent) => {
+    if (!touchStart) return;
+    const deltaY = touchStart - event.touches[0].clientY;
+    if (Math.abs(deltaY) > 50) {
+      setCurrentIndex((prev) =>
+        deltaY > 0 ? (prev + 1) % models.length : (prev - 1 + models.length) % models.length
+      );
+      setTouchStart(null);
+    }
+  };
+
   return (
     <div
-      className={`flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4 overflow-hidden ${inter.className} relative`}
+      className={`flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4 ${inter.className} relative`}
       onWheel={handleScroll}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
     >
-      <div className="absolute inset-0 bg-grid-dark opacity-20"></div>
+      {/* Semi-transparent grid background */}
+      <div className="absolute inset-0 bg-grid-dark opacity-20 pointer-events-none"></div>
+
+      {/* Navigation Bar */}
       <nav className="fixed top-0 w-full p-4 flex justify-between items-center bg-gray-800/80 backdrop-blur-md shadow-lg z-10 border-b border-blue-500/20">
         <h1 className="text-2xl font-bold text-blue-400 pl-4">
           <strong>HF-TOK</strong>
@@ -50,9 +73,11 @@ export default function Home() {
           </button>
         </a>
       </nav>
+
+      {/* Model Cards */}
       {models.length > 0 && (
         <motion.div
-          key={models[currentIndex].id}
+          key={`${models[currentIndex].id}-${currentIndex}`} // Ensure re-render on index change
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
@@ -87,18 +112,19 @@ export default function Home() {
           </Card>
         </motion.div>
       )}
-      <footer className="fixed bottom-4 text-sm text-blue-400">
-  Made with ❤️ by
-  <a
-    href="https://x.com/gowda_dhanush03"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="underline ml-1 hover:text-blue-500"
-  >
-    Dhanush
-  </a>
-</footer>
 
+      {/* Footer */}
+      <footer className="fixed bottom-4 text-sm text-blue-400">
+        Made with ❤️ by
+        <a
+          href="https://x.com/gowda_dhanush03"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline ml-1 hover:text-blue-500"
+        >
+          Dhanush
+        </a>
+      </footer>
     </div>
   );
 }
